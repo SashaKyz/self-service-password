@@ -154,6 +154,8 @@ $notify_on_sshkey_change = false;
 
 ## Questions/answers
 # Use questions/answers?
+# true (default)
+# false
 $use_questions = true;
 # Allow to register more than one answer?
 $multiple_answers = false;
@@ -345,3 +347,30 @@ if (isset($header_name_extra_config)) {
         }
     }
 }
+
+
+## config for checkexpiration batch
+# to batch it call the page with curl -F login=xxxx -F password=yyyy
+
+# allow this functionality
+$use_checkexpiration=true;
+
+$ldap_defaultpolicydn="cn=default,ou=policies," . $ldap_base;
+$ldap_admingroupdn="cn=administrators,ou=groups," . $ldap_base;
+
+# if pwdExpireWarning is not define in the default policy, then define 14 days warning before expire
+$expire_warning=1209600;
+
+# if set false: then send mail, 1st day of warning, last day of warning and 1st day of expire
+$expire_always_mail = true;
+
+# message They can also be defined in lang/ files
+$messages['emptyexpireform'] = "Checking password expiration for all users";
+$messages["expirehelp"] = "Only administrator can run this page";
+$messages['checkexpiration'] = "Check expiration of passwords";
+$messages['expirechecked'] = "The password expiration check has been completed";
+$messages['warningexpiresubject'] = "Warning - Your password will expired";
+$messages['warningexpiremessage'] = "Hello {login},\n\nYour password will expired in {days} days.\nClick here to change your password:\n{url}\n\n";
+$messages['alertexpiresubject'] = "Alert - Your password is expired";
+$messages['alertexpiremessage'] = "Hello {login},\n\nYour password is expired since {days} days.\nClick here to reset your password:\n{url}\n\n";
+?>
