@@ -61,6 +61,12 @@ function generate_url($reset_url, $action) {
 }
 
 
+# missed defines in php 5
+if ( !defined("LDAP_OPT_DIAGNOSTIC_MESSAGE") ) {
+    define("LDAP_OPT_DIAGNOSTIC_MESSAGE", 0x0032);
+}
+
+
 # Create SSHA password
 function make_ssha_password($password) {
     $salt = random_bytes(4);

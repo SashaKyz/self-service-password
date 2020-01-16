@@ -37,7 +37,7 @@ $debug = false;
 $ldap_url = "ldap://localhost";
 $ldap_starttls = false;
 $ldap_binddn = "cn=manager,dc=example,dc=com";
-$ldap_bindpw = 'secret';
+$ldap_bindpw = "secret";
 $ldap_base = "dc=example,dc=com";
 $ldap_login_attribute = "uid";
 $ldap_fullname_attribute = "cn";
@@ -199,7 +199,7 @@ $notify_on_change = false;
 $mail_sendmailpath = '/usr/sbin/sendmail';
 $mail_protocol = 'smtp';
 $mail_smtp_debug = 0;
-$mail_debug_format = 'error_log';
+$mail_debug_format = 'html';
 $mail_smtp_host = 'localhost';
 $mail_smtp_auth = false;
 $mail_smtp_user = '';
@@ -301,6 +301,9 @@ $default_action = "change";
 # They can also be defined in lang/ files
 #$messages['passwordchangedextramessage'] = NULL;
 #$messages['changehelpextramessage'] = NULL;
+
+## show ldap extended error
+#$show_extented_ldap_error=true;
 
 ## Post Hook
 # Launch a posthook script after successful password change

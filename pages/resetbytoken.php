@@ -21,6 +21,7 @@
 
 # This page is called to reset a password when a valid token is found in URL
 
+
 #==============================================================================
 # POST parameters
 #==============================================================================
@@ -188,6 +189,12 @@ if ($result === "") {
         $command = posthook_command($posthook, $login, $newpassword, null, $posthook_password_encodebase64);
         exec($command, $posthook_output, $posthook_return);
     }
+
+    $ldap_extended_error = "" ;
+    if ( $result === "passworderror" && $show_extented_ldap_error  ) {
+      ldap_get_option($ldap, LDAP_OPT_DIAGNOSTIC_MESSAGE, $ldap_extended_error);
+     $ldap_extended_error = "[" . $ldap_extended_error . "]";
+   }
 }
 
 # Delete token if all is ok
@@ -203,7 +210,7 @@ if ( in_array($result, array($obscure_failure_messages)) ) { $result = "badcrede
 ?>
 
 <div class="result alert alert-<?php echo get_criticity($result) ?>">
-<p><i class="fa fa-fw <?php echo get_fa_class($result) ?>" aria-hidden="true"></i> <?php echo $messages[$result]; ?></p>
+<p><i class="fa fa-fw <?php echo get_fa_class($result) ?>" aria-hidden="true"></i> <?php echo $messages[$result] . " " . $ldap_extended_error ; ?></p>
 </div>
 
 <?php if ( $display_posthook_error and $posthook_return > 0 ) { ?>
