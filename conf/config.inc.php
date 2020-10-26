@@ -42,6 +42,7 @@ $ldap_base = "dc=example,dc=com";
 $ldap_login_attribute = "uid";
 $ldap_fullname_attribute = "cn";
 $ldap_filter = "(&(objectClass=person)($ldap_login_attribute={login}))";
+$ldap_use_exop_passwd = false;
 
 # Active Directory mode
 # true: use unicodePwd as password field
@@ -108,6 +109,14 @@ $pwd_special_chars = "^a-zA-Z0-9";
 $pwd_no_reuse = true;
 # Check that password is different than login
 $pwd_diff_login = true;
+# Check new passwords differs from old one - minimum characters count
+$pwd_diff_last_min_chars = 0;
+# Forbidden words which must not appear in the password
+$pwd_forbidden_words = array();
+# Forbidden ldap fields
+# Respective values of the user's entry must not appear in the password
+# example: $pwd_forbidden_ldap_fields = array('cn', 'givenName', 'sn', 'mail');
+$pwd_forbidden_ldap_fields = array();
 # Complexity: number of different class of character required
 $pwd_complexity = 0;
 # use pwnedpasswords api v2 to securely check if the password has been on a leak
@@ -130,6 +139,9 @@ $pwd_no_special_at_ends = false;
 # user: the user itself
 # manager: the above binddn
 $who_change_password = "user";
+
+# Show extended error message returned by LDAP directory when password is refused
+$show_extended_error = false;
 
 ## Standard change
 # Use standard change form?
@@ -207,6 +219,7 @@ $mail_smtp_timeout = 30;
 $mail_smtp_keepalive = false;
 $mail_smtp_secure = 'tls';
 $mail_smtp_autotls = true;
+$mail_smtp_options = array();
 $mail_contenttype = 'text/plain';
 $mail_wordwrap = 0;
 $mail_charset = 'utf-8';
@@ -266,6 +279,9 @@ $logo = "images/ltb-logo.png";
 # Background image
 $background_image = "images/unsplash-space.jpeg";
 
+$custom_css = "";
+$display_footer = true;
+
 # Where to log password resets - Make sure apache has write permission
 # By default, they are logged in Apache log
 #$reset_request_log = "/var/log/self-service-password";
@@ -300,6 +316,19 @@ $default_action = "change";
 #$messages['passwordchangedextramessage'] = NULL;
 #$messages['changehelpextramessage'] = NULL;
 
+## Pre Hook
+# Launch a prehook script before changing password.
+# Script should return with 0, to allow password change.
+# Any other exit code would abort password modification
+#$prehook = "/usr/share/self-service-password/prehook.sh";
+# Display prehook error
+#$display_prehook_error = true;
+# Encode passwords sent to prehook script as base64. This will prevent alteration of the passwords if set to true.
+# To read the actual password in the prehook script, use a base64_decode function/tool
+#$prehook_password_encodebase64 = false;
+# Ignore prehook error. This will allow to change password even if prehook script fails.
+#$ignore_prehook_error = true;
+
 ## Post Hook
 # Launch a posthook script after successful password change
 #$posthook = "/usr/share/self-service-password/posthook.sh";
@@ -308,6 +337,7 @@ $default_action = "change";
 # Encode passwords sent to posthook script as base64. This will prevent alteration of the passwords if set to true.
 # To read the actual password in the posthook script, use a base64_decode function/tool
 #$posthook_password_encodebase64 = false;
+
 # Force setlocale if your default PHP configuration is not correct
 #setlocale(LC_CTYPE, "en_US.UTF-8");
 
@@ -324,6 +354,11 @@ $default_action = "change";
 # Allow to override current settings with local configuration
 if (file_exists (__DIR__ . '/config.inc.local.php')) {
     require __DIR__ . '/config.inc.local.php';
+}
+
+# Smarty
+if (!defined("SMARTY")) {
+    define("SMARTY", "/usr/share/php/smarty3/Smarty.class.php");
 }
 
 # Set preset login from HTTP header $header_name_preset_login
