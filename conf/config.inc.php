@@ -42,6 +42,7 @@ $ldap_base = "dc=example,dc=com";
 $ldap_login_attribute = "uid";
 $ldap_fullname_attribute = "cn";
 $ldap_filter = "(&(objectClass=person)($ldap_login_attribute={login}))";
+$ldap_use_exop_passwd = false;
 
 # Active Directory mode
 # true: use unicodePwd as password field
@@ -199,7 +200,7 @@ $notify_on_change = false;
 $mail_sendmailpath = '/usr/sbin/sendmail';
 $mail_protocol = 'smtp';
 $mail_smtp_debug = 0;
-$mail_debug_format = 'html';
+$mail_debug_format = 'error_log';
 $mail_smtp_host = 'localhost';
 $mail_smtp_auth = false;
 $mail_smtp_user = '';
@@ -209,6 +210,7 @@ $mail_smtp_timeout = 30;
 $mail_smtp_keepalive = false;
 $mail_smtp_secure = 'tls';
 $mail_smtp_autotls = true;
+$mail_smtp_options = array();
 $mail_contenttype = 'text/plain';
 $mail_wordwrap = 0;
 $mail_charset = 'utf-8';
@@ -268,6 +270,9 @@ $logo = "images/ltb-logo.png";
 # Background image
 $background_image = "images/unsplash-space.jpeg";
 
+$custom_css = "";
+$display_footer = true;
+
 # Where to log password resets - Make sure apache has write permission
 # By default, they are logged in Apache log
 #$reset_request_log = "/var/log/self-service-password";
@@ -302,8 +307,18 @@ $default_action = "change";
 #$messages['passwordchangedextramessage'] = NULL;
 #$messages['changehelpextramessage'] = NULL;
 
-## show ldap extended error
-#$show_extented_ldap_error=true;
+## Pre Hook
+# Launch a prehook script before changing password.
+# Script should return with 0, to allow password change.
+# Any other exit code would abort password modification
+#$prehook = "/usr/share/self-service-password/prehook.sh";
+# Display prehook error
+#$display_prehook_error = true;
+# Encode passwords sent to prehook script as base64. This will prevent alteration of the passwords if set to true.
+# To read the actual password in the prehook script, use a base64_decode function/tool
+#$prehook_password_encodebase64 = false;
+# Ignore prehook error. This will allow to change password even if prehook script fails.
+#$ignore_prehook_error = true;
 
 ## Post Hook
 # Launch a posthook script after successful password change
@@ -313,6 +328,7 @@ $default_action = "change";
 # Encode passwords sent to posthook script as base64. This will prevent alteration of the passwords if set to true.
 # To read the actual password in the posthook script, use a base64_decode function/tool
 #$posthook_password_encodebase64 = false;
+
 # Force setlocale if your default PHP configuration is not correct
 #setlocale(LC_CTYPE, "en_US.UTF-8");
 
@@ -329,6 +345,11 @@ $default_action = "change";
 # Allow to override current settings with local configuration
 if (file_exists (__DIR__ . '/config.inc.local.php')) {
     require __DIR__ . '/config.inc.local.php';
+}
+
+# Smarty
+if (!defined("SMARTY")) {
+    define("SMARTY", "/usr/share/php/smarty3/Smarty.class.php");
 }
 
 # Set preset login from HTTP header $header_name_preset_login
