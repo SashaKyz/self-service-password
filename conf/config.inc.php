@@ -20,6 +20,11 @@
 #==============================================================================
 
 #==============================================================================
+# All the default values are kept here, you should not modify it but use
+# config.inc.local.php file instead to override the settings from here.
+#==============================================================================
+
+#==============================================================================
 # Configuration
 #==============================================================================
 
@@ -37,6 +42,7 @@ $ldap_base = "dc=cwds,dc=io";
 $ldap_login_attribute = "uid";
 $ldap_fullname_attribute = "cn";
 $ldap_filter = "(&(objectClass=inetOrgPerson)($ldap_login_attribute={login}))";
+$ldap_use_exop_passwd = false;
 
 # Active Directory mode
 # true: use unicodePwd as password field
@@ -102,11 +108,18 @@ $pwd_forbidden_chars = "@%";
 $pwd_no_reuse = true;
 # Check that password is different than login
 $pwd_diff_login = true;
+# Check new passwords differs from old one - minimum characters count
+$pwd_diff_last_min_chars = 0;
+# Forbidden words which must not appear in the password
+$pwd_forbidden_words = array();
+# Forbidden ldap fields
+# Respective values of the user's entry must not appear in the password
+# example: $pwd_forbidden_ldap_fields = array('cn', 'givenName', 'sn', 'mail');
+$pwd_forbidden_ldap_fields = array();
 # Complexity: number of different class of character required
 $pwd_complexity = 0;
 # use pwnedpasswords api v2 to securely check if the password has been on a leak
 $use_pwnedpasswords = false;
-
 # Show policy constraints message:
 # always
 # never
@@ -117,11 +130,17 @@ $pwd_show_policy = "always";
 # below - the form
 $pwd_show_policy_pos = "above";
 
+# disallow use of the only special character as defined in `$pwd_special_chars` at the beginning and end
+$pwd_no_special_at_ends = false;
+
 # Who changes the password?
 # Also applicable for question/answer save
 # user: the user itself
 # manager: the above binddn
 $who_change_password = "user";
+
+# Show extended error message returned by LDAP directory when password is refused
+$show_extended_error = false;
 
 ## Standard change
 # Use standard change form?
@@ -153,6 +172,9 @@ $use_questions = false;
 # Answer attribute should be hidden to users!
 $answer_objectClass = "extensibleObject";
 $answer_attribute = "info";
+
+# Crypt answers inside the directory
+$crypt_answers = true;
 
 # Extra questions (built-in questions are in lang/$lang.inc.php)
 #$messages['questions']['ice'] = "What is your favorite ice cream flavor?";
@@ -196,6 +218,7 @@ $mail_smtp_timeout = 30;
 $mail_smtp_keepalive = false;
 $mail_smtp_secure = 'tls';
 $mail_smtp_autotls = true;
+$mail_smtp_options = array();
 $mail_contenttype = 'text/plain';
 $mail_wordwrap = 0;
 $mail_charset = 'utf-8';
@@ -257,6 +280,9 @@ $logo = "images/CWDS-Logo.png";
 #$background_image = "images/unsplash-space.jpeg";
 $background_image = "images/unsplash-clouds.jpeg";
 
+$custom_css = "";
+$display_footer = true;
+
 # Where to log password resets - Make sure apache has write permission
 # By default, they are logged in Apache log
 $reset_request_log = "/var/log/self-service-password";
@@ -295,38 +321,70 @@ $show_extented_ldap_error=true;
 #$messages['passwordchangedextramessage'] = NULL;
 #$messages['changehelpextramessage'] = NULL;
 
+## Pre Hook
+# Launch a prehook script before changing password.
+# Script should return with 0, to allow password change.
+# Any other exit code would abort password modification
+#$prehook = "/usr/share/self-service-password/prehook.sh";
+# Display prehook error
+#$display_prehook_error = true;
+# Encode passwords sent to prehook script as base64. This will prevent alteration of the passwords if set to true.
+# To read the actual password in the prehook script, use a base64_decode function/tool
+#$prehook_password_encodebase64 = false;
+# Ignore prehook error. This will allow to change password even if prehook script fails.
+#$ignore_prehook_error = true;
+
+## Post Hook
 # Launch a posthook script after successful password change
 #$posthook = "/usr/share/self-service-password/posthook.sh";
+# Display posthook error
+#$display_posthook_error = true;
 $display_posthook_error = false;
+# Encode passwords sent to posthook script as base64. This will prevent alteration of the passwords if set to true.
+# To read the actual password in the posthook script, use a base64_decode function/tool
+#$posthook_password_encodebase64 = false;
+
+# Force setlocale if your default PHP configuration is not correct
+#setlocale(LC_CTYPE, "en_US.UTF-8");
 
 # Hide some messages to not disclose sensitive information
 # These messages will be replaced by badcredentials error
-$obscure_failure_messages = array("mailnomatch");
+#$obscure_failure_messages = array("mailnomatch");
+
+# HTTP Header name that may hold a login to preset in forms
+#$header_name_preset_login="Auth-User";
+
+# The name of an HTTP Header that may hold a reference to an extra config file to include.
+#$header_name_extra_config="SSP-Extra-Config";
 
 # Allow to override current settings with local configuration
 if (file_exists (__DIR__ . '/config.inc.local.php')) {
   require __DIR__ . '/config.inc.local.php';
 }
 
+# Smarty
+if (!defined("SMARTY")) {
+    define("SMARTY", "/usr/share/php/smarty3/Smarty.class.php");
+}
 
 # Set preset login from HTTP header $header_name_preset_login
 $presetLogin = "";
 if (isset($header_name_preset_login)) {
-  $presetLoginKey = "HTTP_".strtoupper(str_replace('-','_',$header_name_preset_login));
-  if (array_key_exists($presetLoginKey, $_SERVER)) {
-    $presetLogin = preg_replace("/[^a-zA-Z0-9-_@\.]+/", "", filter_var($_SERVER[$presetLoginKey], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH));
-  }
+    $presetLoginKey = "HTTP_".strtoupper(str_replace('-','_',$header_name_preset_login));
+    if (array_key_exists($presetLoginKey, $_SERVER)) {
+        $presetLogin = preg_replace("/[^a-zA-Z0-9-_@\.]+/", "", filter_var($_SERVER[$presetLoginKey], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH));
+    }
 }
 
 # Allow to override current settings with an extra configuration file, whose reference is passed in HTTP_HEADER $header_name_extra_config
 if (isset($header_name_extra_config)) {
-  $extraConfigKey = "HTTP_".strtoupper(str_replace('-','_',$header_name_extra_config));
-  if (array_key_exists($extraConfigKey, $_SERVER)) {
-    $extraConfig = preg_replace("/[^a-zA-Z0-9-_]+/", "", filter_var($_SERVER[$extraConfigKey], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH));
-    if (strlen($extraConfig) > 0 && file_exists (__DIR__ . "/config.inc.".$extraConfig.".php")) {
-      require  __DIR__ . "/config.inc.".$extraConfig.".php";
+    $extraConfigKey = "HTTP_".strtoupper(str_replace('-','_',$header_name_extra_config));
+    if (array_key_exists($extraConfigKey, $_SERVER)) {
+        $extraConfig = preg_replace("/[^a-zA-Z0-9-_]+/", "", filter_var($_SERVER[$extraConfigKey], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH));
+        if (strlen($extraConfig) > 0 && file_exists (__DIR__ . "/config.inc.".$extraConfig.".php")) {
+            require  __DIR__ . "/config.inc.".$extraConfig.".php";
+        }
     }
-  }
 }
 
 
