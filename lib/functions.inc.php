@@ -251,8 +251,8 @@ function show_policy( $messages, $pwd_policy_config, $result ) {
     if ( $pwd_diff_login      ) { echo "<li>".$messages["policydifflogin"]                               ."\n"; }
     if ( $use_pwnedpasswords  ) { echo "<li>".$messages["policypwned"]                               ."\n"; }
     if ( $pwd_no_special_at_ends  ) { echo "<li>".$messages["policyspecialatends"] ."</li>\n"; }
-    echo "<li>".$messages["contactifissue"] ."</li>\n";
     echo "</ul>\n";
+    echo $messages["contactifissue"]." \n";
     echo "</div>\n";
 }
 
