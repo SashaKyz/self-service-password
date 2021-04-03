@@ -1,4 +1,4 @@
-FROM php:7.2-apache
+FROM php:7.3-apache
 # Install PHP extensions and PECL modules.
 RUN buildDeps=" \
         libbz2-dev \
